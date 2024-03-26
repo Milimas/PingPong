@@ -1,55 +1,76 @@
 import * as THREE from 'three';
-import WebGL from 'three/addons/capabilities/WebGL.js';
-import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
-// Check if WebGL is available
-if ( WebGL.isWebGLAvailable() ) {
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize( window.innerWidth, window.innerHeight );
+renderer.setClearColor( 0x404040, 1 );
+document.body.appendChild( renderer.domElement );
 
-    // Create the Three.js scene
-    const scene = new THREE.Scene();
-   
-    // Create the Three.js camera
-    const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 500 );
-    camera.position.set( 0, 0, 100 );
-    camera.lookAt( 0, 0, 0 );
+const loader = new GLTFLoader();
+let paddle1 = new THREE.Object3D();
 
-    // Create the Three.js renderer
-    const renderer = new THREE.WebGLRenderer();
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    document.body.appendChild( renderer.domElement );
+loader.load( './public/pingpong_paddle.glb', function ( gltf ) {
 
-    // Create the Three.js line
-    const material = new THREE.LineBasicMaterial( { color: 0x0000ff } );
-
-    const points = [];
-    points.push( new THREE.Vector3( - 10, 0, 0 ) );
-    points.push( new THREE.Vector3( 0, 10, 0 ) );
-    points.push( new THREE.Vector3( 10, 0, 0 ) );
-
-    const geometry = new THREE.BufferGeometry().setFromPoints( points );
-
-    const line = new THREE.Line( geometry, material );
-
-    scene.add( line );
-
+    gltf.scene.position.set(0, 0, 0);
+    gltf.scene.scale.set(0.5, 0.5, 0.5);
+    gltf.scene.rotation.set(0, 0, 0);
     
+    paddle1.add(gltf.scene);
+}, undefined, function (error) {
 
-    // Animate the line
-    function animate() {
-        requestAnimationFrame( animate );
-        line.rotation.y += 0.01 ;
-        renderer.render( scene, camera );
-    }
+    console.error(error);
 
-    // Start the animation
-	animate();
+});
 
-} else {
+scene.add(paddle1);
 
-    // Show the error in the console
-	const warning = WebGL.getWebGLErrorMessage();
-	document.getElementById( 'container' ).appendChild( warning );
+var plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -2);
+var raycaster = new THREE.Raycaster();
+var mouse = new THREE.Vector2();
+var pointOfIntersection = new THREE.Vector3();
+
+function onDocumentMouseMove (event) {
+
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    raycaster.ray.intersectPlane(plane, pointOfIntersection);
+    paddle1.position.copy(pointOfIntersection);
 
 }
+
+document.addEventListener('mousemove', onDocumentMouseMove) ;
+
+
+
+// add ambient light
+const ambientLight = new THREE.AmbientLight(0x404040);
+// make is strong
+ambientLight.intensity = 6;
+scene.add(ambientLight);
+
+// add a directional light
+const light = new THREE.DirectionalLight(0xffffff, 0.5);
+light.position.setScalar(10);
+scene.add(light);
+
+camera.position.z = 10;
+
+// on window resize
+window.addEventListener('resize', () => {
+    // update sizes
+    camera.aspect = window.innerWidth / window.innerHeight
+    camera.updateProjectionMatrix()
+    renderer.setSize(window.innerWidth, window.innerHeight)
+})
+
+function animate() {
+	requestAnimationFrame( animate );
+    
+	renderer.render( scene, camera );
+}
+animate();
+
