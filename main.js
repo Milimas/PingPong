@@ -66,6 +66,14 @@ function updateCameraAspect(camera) {
   camera.updateProjectionMatrix();
 }
 
+// on window resize
+window.addEventListener('resize', () => {
+  // update sizes
+  camera.aspect = window.innerWidth / window.innerHeight
+  camera.updateProjectionMatrix()
+  renderer.setSize(window.innerWidth, window.innerHeight)
+})
+
 //A method to be run each time a frame is generated
 function animate() {
   requestAnimationFrame(animate);
