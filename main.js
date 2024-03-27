@@ -81,23 +81,17 @@ function animate() {
   renderer.render(scene, camera);
 };
 
-
-const ambient = new THREE.AmbientLight() ;
-
-scene.add(ambient) ;
-
-var plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -2);
-var raycaster = new THREE.Raycaster();
-var mouse = new THREE.Vector2();
-var pointOfIntersection = new THREE.Vector3();
-
 function onDocumentMouseMove(event)
 {
+  let plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -2);
+  let raycaster = new THREE.Raycaster();
+  let pointOfIntersection = new THREE.Vector3();
+  const mouse = new THREE.Vector2() ;
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
   raycaster.ray.intersectPlane(plane, pointOfIntersection);
-  player.position.x = pointOfIntersection.x;
+  player.position.x = Math.min(Math.max(pointOfIntersection.x, -1.6), 1.6);
 }
 
 document.addEventListener('mousemove', onDocumentMouseMove, false);
