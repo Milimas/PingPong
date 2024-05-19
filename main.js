@@ -3,7 +3,7 @@ import { LoadGLTFByPath } from './ModelHelper.js'
 
 //Renderer does the job of rendering the graphics
 let renderer = new THREE.WebGLRenderer({
-    //Defines the canvas component in the DOM that will be used
+  //Defines the canvas component in the DOM that will be used
 	canvas: document.querySelector('#background'),
   antialias: true,
 });
@@ -19,7 +19,7 @@ renderer.toneMapping = 0;
 renderer.toneMappingExposure = 1
 renderer.toneMapping = THREE.NoToneMapping;
 renderer.setClearColor(0xffffff, 0);
-//make sure three/build/three.module.js is over r152 or this feature is not available. 
+//make sure three/build/three.module.js is over r152 or this feature is not available.
 renderer.outputColorSpace = THREE.SRGBColorSpace 
 
 const scene = new THREE.Scene();
@@ -28,6 +28,8 @@ let cameraList = [];
 
 let camera;
 let player;
+let player2;
+let ball ;
 
 // Load the GLTF model
 LoadGLTFByPath(scene)
@@ -47,6 +49,10 @@ function retrieveListOfCameras(scene){
     }
     if (object.name === "PaddlePlayer1")
       player = object ;
+    if (object.name === "PaddlePlayer2")
+      player2 = object ;
+    if (object.name === "Cube")
+      ball = object ;
   });
 
   //Set the camera to the first value in the list of cameras
@@ -74,9 +80,23 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight)
 })
 
+let ballMoveDirection = new THREE.Vector3(1, 0, 1);
+let borderLimit = new THREE.Vector3(1.83, 0, 2.7);
+let ballspeed = 0.04;
+
 //A method to be run each time a frame is generated
 function animate() {
   requestAnimationFrame(animate);
+
+  ball.position.x = ball.position.x + ballMoveDirection.x * ballspeed;
+  ball.position.z = ball.position.z + ballMoveDirection.z * ballspeed;
+
+  if (ball.position.x > borderLimit.x || ball.position.x < borderLimit.x * -1) {
+    ballMoveDirection.x = ballMoveDirection.x * -1
+  }
+  if (ball.position.z > borderLimit.z || ball.position.z < borderLimit.z * -1) {
+    ballMoveDirection.z = ballMoveDirection.z * -1
+  }
 
   renderer.render(scene, camera);
 };
@@ -92,6 +112,21 @@ function onDocumentMouseMove(event)
   raycaster.setFromCamera(mouse, camera);
   raycaster.ray.intersectPlane(plane, pointOfIntersection);
   player.position.x = Math.min(Math.max(pointOfIntersection.x, -1.6), 1.6);
+  console.log(player) ;
+  socket.send(JSON.stringify({x: player.position.x, ball: ball.position}));
 }
 
 document.addEventListener('mousemove', onDocumentMouseMove, false);
+
+let socket = new WebSocket('ws://localhost:8080');
+
+socket.onmessage = (event) => {
+let obj = JSON.parse(event.data);
+player2.position.x = obj.x;
+ball.position.x = obj.ball.x;
+ball.position.y = obj.ball.y;
+ball.position.z = obj.ball.z;
+console.log(player2.position);
+
+};
+
