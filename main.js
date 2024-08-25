@@ -31,6 +31,8 @@ let player;
 let player2;
 let ball ;
 
+let newUpdate = true ;
+
 // Load the GLTF model
 LoadGLTFByPath(scene)
   .then(() => {
@@ -79,54 +81,63 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix()
   renderer.setSize(window.innerWidth, window.innerHeight)
 })
-
-let ballMoveDirection = new THREE.Vector3(1, 0, 1);
-let borderLimit = new THREE.Vector3(1.83, 0, 2.7);
-let ballspeed = 0.04;
-
 //A method to be run each time a frame is generated
 function animate() {
   requestAnimationFrame(animate);
-
-  ball.position.x = ball.position.x + ballMoveDirection.x * ballspeed;
-  ball.position.z = ball.position.z + ballMoveDirection.z * ballspeed;
-
-  if (ball.position.x > borderLimit.x || ball.position.x < borderLimit.x * -1) {
-    ballMoveDirection.x = ballMoveDirection.x * -1
-  }
-  if (ball.position.z > borderLimit.z || ball.position.z < borderLimit.z * -1) {
-    ballMoveDirection.z = ballMoveDirection.z * -1
-  }
-
+  if (!newUpdate)
+    return ;
   renderer.render(scene, camera);
+  newUpdate = false ;
 };
 
-function onDocumentMouseMove(event)
-{
-  let plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -2);
-  let raycaster = new THREE.Raycaster();
-  let pointOfIntersection = new THREE.Vector3();
-  const mouse = new THREE.Vector2() ;
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  raycaster.setFromCamera(mouse, camera);
-  raycaster.ray.intersectPlane(plane, pointOfIntersection);
-  player.position.x = Math.min(Math.max(pointOfIntersection.x, -1.6), 1.6);
-  console.log(player) ;
-  socket.send(JSON.stringify({x: player.position.x, ball: ball.position}));
-}
-
-document.addEventListener('mousemove', onDocumentMouseMove, false);
-
-let socket = new WebSocket('ws://localhost:8080');
+let socket = new WebSocket('ws://localhost:8000/ws/game/');
 
 socket.onmessage = (event) => {
-let obj = JSON.parse(event.data);
-player2.position.x = obj.x;
-ball.position.x = obj.ball.x;
-ball.position.y = obj.ball.y;
-ball.position.z = obj.ball.z;
-console.log(player2.position);
-
+  let obj = JSON.parse(event.data) ;
+  ball.position.x = obj.ball_position[0] ;
+  ball.position.z = obj.ball_position[1] ;
+  player.position.x = obj.player1 ;
+  player2.position.x = obj.player2 ;
+  newUpdate = true ;
+  // console.log(obj) ;
 };
 
+socket.onopen = (event) =>
+{
+  console.log("connected") ;
+}
+
+socket.onclose = (event) =>
+{
+  console.log("connection closed") ;
+}
+
+document.onkeydown = checkKey;
+
+function checkKey(e) {
+
+    e = e || window.event;
+
+    if (e.keyCode == '38') {
+        // up arrow
+    }
+    else if (e.keyCode == '40') {
+        // down arrow
+    }
+    else if (e.keyCode == '37') {
+       // left arrow
+       socket.send(
+        JSON.stringify({
+          "type": 'right'
+        }))
+    }
+    else if (e.keyCode == '39') {
+       // right arrow
+       socket.send(
+        JSON.stringify(
+        {
+          "type": 'left'
+        }))
+    }
+
+}
