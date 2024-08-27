@@ -1,6 +1,31 @@
 import * as THREE from 'three'
 import { LoadGLTFByPath } from './ModelHelper.js'
 
+let user = {
+  // 'email': 'email@email.com',
+  'email': 'user2@email.com',
+  'password': '123456',
+}
+
+const url = `http://127.0.0.1:8000/api/auth/login/`
+fetch(url, {
+  method: "POST",
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+  },
+  credentials: "include",
+  body: JSON.stringify(user),
+}).then(rep => rep.json())
+  .then(data => {
+    console.log(data);
+    if (data.success)
+    {
+      console.log(`good`);
+    }
+  })
+  .catch(error => console.log("error"));
+
 //Renderer does the job of rendering the graphics
 let renderer = new THREE.WebGLRenderer({
   //Defines the canvas component in the DOM that will be used
@@ -72,6 +97,10 @@ function updateCameraAspect(camera) {
   const height = window.innerHeight;
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
+  // camera.position.z = 0 ;
+  // camera.position.y = 11 ;
+  // camera.position.x = 0 ;
+  // camera.lookAt(0,0,0) ;
 }
 
 // on window resize
