@@ -7,24 +7,24 @@ let user = {
   'password': '123456',
 }
 
-const url = `http://127.0.0.1:8000/api/auth/login/`
-fetch(url, {
-  method: "POST",
-  headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json'
-  },
-  credentials: "include",
-  body: JSON.stringify(user),
-}).then(rep => rep.json())
-  .then(data => {
-    console.log(data);
-    if (data.success)
-    {
-      console.log(`good`);
-    }
-  })
-  .catch(error => console.log("error"));
+// const url = `http://127.0.0.1:8000/api/auth/login/`
+// fetch(url, {
+//   method: "POST",
+//   headers: {
+//     'Accept': 'application/json',
+//     'Content-Type': 'application/json'
+//   },
+//   credentials: "include",
+//   body: JSON.stringify(user),
+// }).then(rep => rep.json())
+//   .then(data => {
+//     console.log(data);
+//     if (data.success)
+//     {
+//       console.log(`good`);
+//     }
+//   })
+//   .catch(error => console.log("error"));
 
 //Renderer does the job of rendering the graphics
 let renderer = new THREE.WebGLRenderer({
@@ -55,6 +55,7 @@ let camera;
 let player;
 let player2;
 let ball ;
+let opposit_side_cam_pos ;
 
 let newUpdate = true ;
 
@@ -77,9 +78,23 @@ function retrieveListOfCameras(scene){
     if (object.name === "PaddlePlayer1")
       player = object ;
     if (object.name === "PaddlePlayer2")
+    {
       player2 = object ;
+      let box = new THREE.Box3().setFromObject( player2 );
+      let measure = new THREE.Vector3()
+      let size = box.getSize(measure); 
+      console.log("player2")
+      console.log(measure)
+      console.log(size)
+    }
     if (object.name === "Cube")
+    {
       ball = object ;
+      var box = new THREE.Box3().setFromObject( ball );
+      console.log("ball")
+      console.log(box.max.x - box.min.x)
+      console.log(box.max.y - box.min.y)
+    }
   });
 
   //Set the camera to the first value in the list of cameras
@@ -97,10 +112,11 @@ function updateCameraAspect(camera) {
   const height = window.innerHeight;
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
+  opposit_side_cam_pos = -camera.position.z ;
   // camera.position.z = 0 ;
-  // camera.position.y = 11 ;
+  // camera.position.y = 20 ;
   // camera.position.x = 0 ;
-  // camera.lookAt(0,0,0) ;
+  // camera.lookAt(0,0,0)
 }
 
 // on window resize
@@ -127,6 +143,9 @@ socket.onmessage = (event) => {
   ball.position.z = obj.ball_position[1] ;
   player.position.x = obj.player1 ;
   player2.position.x = obj.player2 ;
+  if (obj.side == 'player2')
+    camera.position.z = opposit_side_cam_pos ;
+  camera.lookAt(0,0,0) ;
   newUpdate = true ;
   // console.log(obj) ;
 };
