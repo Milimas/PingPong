@@ -5,70 +5,68 @@ import { flattenJSON } from 'three/src/animation/AnimationUtils.js';
 
 let username = generateUUID() ;
 let user = {
-  // 'email': 'email@email.com',
   'email': username + '@email.com',
   'password': '123456',
   'username': username,
 }
 
-// fetch('http://localhost:8000/api/auth/me/',
-//   {
-//     credentials: "include",
-//   }).then(rep => rep.json())
-//   .then(data => {
-//     console.log(data)
-//     if (data.success)
-//     {
-//       return ;
-//     }
-//     else
-//     {
-//       const url = `http://localhost:8000/api/auth/login/`
-//       fetch(url, {
-//         method: "POST",
-//         headers: {
-//           'Accept': 'application/json',
-//           'Content-Type': 'application/json'
-//         },
-//         credentials: "include",
-//         body: JSON.stringify(user),
-//       }).then(rep => rep.json())
-//         .then(data => {
-//           console.log(data);
-//           if (data.success)
-//           {
-//             console.log(`loged in`);
-//           }
-//           else
-//           {
-//             fetch('http://localhost:8000/api/auth/register/', {
-//               method: "POST",
-//               headers: {
-//                 'Accept': 'application/json',
-//                 'Content-Type': 'application/json'
-//               },
-//               credentials: "include",
-//               body: JSON.stringify(user),
-//             }).then(rep => rep.json())
-//               .then(data => {
-//                 console.log(data);
-//                 if (data.success)
-//                 {
-//                   console.log(`registered`);
-//                 }
-//               })
-//               .catch(error => {
-//                 console.log("error")
+fetch('http://localhost:8000/api/auth/me/',
+  {
+    credentials: "include",
+  }).then(rep => rep.json())
+  .then(data => {
+    console.log(data)
+    if (data.success)
+    {
+      return ;
+    }
+    else
+    {
+      const url = `http://localhost:8000/api/auth/login/`
+      fetch(url, {
+        method: "POST",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        credentials: "include",
+        body: JSON.stringify(user),
+      }).then(rep => rep.json())
+        .then(data => {
+          console.log(data);
+          if (data.success)
+          {
+            console.log(`loged in`);
+          }
+          else
+          {
+            fetch('http://localhost:8000/api/auth/register/', {
+              method: "POST",
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              },
+              credentials: "include",
+              body: JSON.stringify(user),
+            }).then(rep => rep.json())
+              .then(data => {
+                console.log(data);
+                if (data.success)
+                {
+                  console.log(`registered`);
+                }
+              })
+              .catch(error => {
+                console.log("error")
                 
-//               });
-//           }
-//         })
-//         .catch(error => {
-//           console.log("error")
-//         });
-//     }
-
-//   }).catch(error => console.log(error));
+              });
+          }
+        })
+        .catch(error => {
+          console.log("error")
+        });
+    }
+  }).catch(error => console.log(error));
 
 
 //Renderer does the job of rendering the graphics
@@ -158,11 +156,7 @@ function updateCameraAspect(camera) {
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
   opposit_side_cam_pos = -camera.position.z ;
-  // camera.position.z = opposit_side_cam_pos ;
 
-  // camera.position.z = 0 ;
-  // camera.position.y = 20 ;
-  // camera.position.x = 0 ;
   camera.lookAt(0,0,0)
 }
 
@@ -176,8 +170,8 @@ window.addEventListener('resize', () => {
 //A method to be run each time a frame is generated
 function animate() {
   requestAnimationFrame(animate);
-  // if (!newUpdate)
-  //   return ;
+  if (!newUpdate)
+    return ;
   renderer.render(scene, camera);
   newUpdate = false ;
   if (right == true)
@@ -200,7 +194,6 @@ socket.onmessage = (event) => {
     camera.position.z = opposit_side_cam_pos ;
   camera.lookAt(0,0,0) ;
   newUpdate = true ;
-  // console.log(obj) ;
 };
 
 socket.onopen = (event) =>
