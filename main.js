@@ -1,30 +1,75 @@
 import * as THREE from 'three'
 import { LoadGLTFByPath } from './ModelHelper.js'
+import { generateUUID } from 'three/src/math/MathUtils.js';
+import { flattenJSON } from 'three/src/animation/AnimationUtils.js';
 
+let username = generateUUID() ;
 let user = {
   // 'email': 'email@email.com',
-  'email': 'user2@email.com',
+  'email': username + '@email.com',
   'password': '123456',
+  'username': username,
 }
 
-// const url = `http://127.0.0.1:8000/api/auth/login/`
-// fetch(url, {
-//   method: "POST",
-//   headers: {
-//     'Accept': 'application/json',
-//     'Content-Type': 'application/json'
-//   },
-//   credentials: "include",
-//   body: JSON.stringify(user),
-// }).then(rep => rep.json())
+// fetch('http://10.14.1.8:8000/api/auth/me/',
+//   {
+//     credentials: "include",
+//   }).then(rep => rep.json())
 //   .then(data => {
-//     console.log(data);
+//     console.log(data)
 //     if (data.success)
 //     {
-//       console.log(`good`);
+//       return ;
 //     }
-//   })
-//   .catch(error => console.log("error"));
+//     else
+//     {
+//       const url = `http://10.14.1.8:8000/api/auth/login/`
+//       fetch(url, {
+//         method: "POST",
+//         headers: {
+//           'Accept': 'application/json',
+//           'Content-Type': 'application/json'
+//         },
+//         credentials: "include",
+//         body: JSON.stringify(user),
+//       }).then(rep => rep.json())
+//         .then(data => {
+//           console.log(data);
+//           if (data.success)
+//           {
+//             console.log(`loged in`);
+//           }
+//           else
+//           {
+//             fetch('http://10.14.1.8:8000/api/auth/register/', {
+//               method: "POST",
+//               headers: {
+//                 'Accept': 'application/json',
+//                 'Content-Type': 'application/json'
+//               },
+//               credentials: "include",
+//               body: JSON.stringify(user),
+//             }).then(rep => rep.json())
+//               .then(data => {
+//                 console.log(data);
+//                 if (data.success)
+//                 {
+//                   console.log(`registered`);
+//                 }
+//               })
+//               .catch(error => {
+//                 console.log("error")
+                
+//               });
+//           }
+//         })
+//         .catch(error => {
+//           console.log("error")
+//         });
+//     }
+
+//   }).catch(error => console.log(error));
+
 
 //Renderer does the job of rendering the graphics
 let renderer = new THREE.WebGLRenderer({
@@ -113,10 +158,12 @@ function updateCameraAspect(camera) {
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
   opposit_side_cam_pos = -camera.position.z ;
+  // camera.position.z = opposit_side_cam_pos ;
+
   // camera.position.z = 0 ;
   // camera.position.y = 20 ;
   // camera.position.x = 0 ;
-  // camera.lookAt(0,0,0)
+  camera.lookAt(0,0,0)
 }
 
 // on window resize
@@ -129,13 +176,19 @@ window.addEventListener('resize', () => {
 //A method to be run each time a frame is generated
 function animate() {
   requestAnimationFrame(animate);
-  if (!newUpdate)
-    return ;
+  // if (!newUpdate)
+  //   return ;
   renderer.render(scene, camera);
   newUpdate = false ;
+  if (right == true)
+    socket.send(JSON.stringify({"type": 'right'})) ;
+  if (left == true)
+    socket.send(JSON.stringify({"type": 'left'})) ;
 };
 
-let socket = new WebSocket('ws://localhost:8000/ws/game/');
+
+
+let socket = new WebSocket('ws://10.14.1.8:8000/ws/game/');
 
 socket.onmessage = (event) => {
   let obj = JSON.parse(event.data) ;
@@ -160,32 +213,26 @@ socket.onclose = (event) =>
   console.log("connection closed") ;
 }
 
-document.onkeydown = checkKey;
+document.onkeydown = keyDown;
+document.onkeyup = keyUp;
 
-function checkKey(e) {
+let left = false ;
+let right = false ;
 
+function keyDown(e) {
     e = e || window.event;
 
-    if (e.keyCode == '38') {
-        // up arrow
-    }
-    else if (e.keyCode == '40') {
-        // down arrow
-    }
-    else if (e.keyCode == '37') {
-       // left arrow
-       socket.send(
-        JSON.stringify({
-          "type": 'right'
-        }))
-    }
-    else if (e.keyCode == '39') {
-       // right arrow
-       socket.send(
-        JSON.stringify(
-        {
-          "type": 'left'
-        }))
-    }
+    if (e.keyCode == '37')      // left arrow
+       left = true
+    else if (e.keyCode == '39') // right arrow
+       right = true
+}
 
+function keyUp(e) {
+  e = e || window.event;
+
+  if (e.keyCode == '37')      // left arrow
+     left = false
+  else if (e.keyCode == '39') // right arrow
+     right = false
 }
