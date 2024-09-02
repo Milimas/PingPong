@@ -11,7 +11,7 @@ let user = {
   'username': username,
 }
 
-// fetch('http://10.14.1.8:8000/api/auth/me/',
+// fetch('http://localhost:8000/api/auth/me/',
 //   {
 //     credentials: "include",
 //   }).then(rep => rep.json())
@@ -23,7 +23,7 @@ let user = {
 //     }
 //     else
 //     {
-//       const url = `http://10.14.1.8:8000/api/auth/login/`
+//       const url = `http://localhost:8000/api/auth/login/`
 //       fetch(url, {
 //         method: "POST",
 //         headers: {
@@ -41,7 +41,7 @@ let user = {
 //           }
 //           else
 //           {
-//             fetch('http://10.14.1.8:8000/api/auth/register/', {
+//             fetch('http://localhost:8000/api/auth/register/', {
 //               method: "POST",
 //               headers: {
 //                 'Accept': 'application/json',
@@ -188,7 +188,7 @@ function animate() {
 
 
 
-let socket = new WebSocket('ws://10.14.1.8:8000/ws/game/');
+let socket = new WebSocket('ws://localhost:8000/ws/game/');
 
 socket.onmessage = (event) => {
   let obj = JSON.parse(event.data) ;
@@ -222,17 +222,17 @@ let right = false ;
 function keyDown(e) {
     e = e || window.event;
 
-    if (e.keyCode == '37')      // left arrow
-       left = true
-    else if (e.keyCode == '39') // right arrow
+    if (e.keyCode == '37')      // right arrow
        right = true
+    else if (e.keyCode == '39') // left arrow
+       left = true
 }
 
 function keyUp(e) {
   e = e || window.event;
 
-  if (e.keyCode == '37')      // left arrow
-     left = false
-  else if (e.keyCode == '39') // right arrow
+  if (e.keyCode == '37')      // right arrow
      right = false
+  else if (e.keyCode == '39') // left arrow
+     left = false
 }
