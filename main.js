@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 import { LoadGLTFByPath } from './ModelHelper.js'
 import { generateUUID } from 'three/src/math/MathUtils.js';
-import { flattenJSON } from 'three/src/animation/AnimationUtils.js';
 
 let username = generateUUID() ;
 let user = {
@@ -74,7 +73,9 @@ let renderer = new THREE.WebGLRenderer({
   //Defines the canvas component in the DOM that will be used
 	canvas: document.querySelector('#background'),
   antialias: true,
+  alpha: true
 });
+renderer.setClearColor( 0x000000, 0 );
 
 renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -99,6 +100,10 @@ let player;
 let player2;
 let ball ;
 let opposit_side_cam_pos ;
+let score1Text = 0 ;
+let score2Text = 0 ;
+let player1Score ;
+let player2Score ;
 
 let newUpdate = true ;
 
@@ -121,24 +126,16 @@ function retrieveListOfCameras(scene){
     if (object.name === "PaddlePlayer1")
       player = object ;
     if (object.name === "PaddlePlayer2")
-    {
       player2 = object ;
-      let box = new THREE.Box3().setFromObject( player2 );
-      let measure = new THREE.Vector3()
-      let size = box.getSize(measure); 
-      console.log("player2")
-      console.log(measure)
-      console.log(size)
-    }
     if (object.name === "Cube")
-    {
       ball = object ;
-      var box = new THREE.Box3().setFromObject( ball );
-      console.log("ball")
-      console.log(box.max.x - box.min.x)
-      console.log(box.max.y - box.min.y)
-    }
+    if (object.name === "score1")
+      player1Score = object
+    if (object.name === "score2")
+      player2Score = object
+    console.log(player1Score);
   });
+  updateScore() 
 
   //Set the camera to the first value in the list of cameras
   camera = cameraList[0];
@@ -170,9 +167,9 @@ window.addEventListener('resize', () => {
 //A method to be run each time a frame is generated
 function animate() {
   requestAnimationFrame(animate);
+  renderer.render(scene, camera);
   if (!newUpdate)
     return ;
-  renderer.render(scene, camera);
   newUpdate = false ;
   if (right == true)
     socket.send(JSON.stringify({"type": 'right'})) ;
@@ -190,6 +187,16 @@ socket.onmessage = (event) => {
   ball.position.z = obj.ball_position[1] ;
   player.position.x = obj.player1 ;
   player2.position.x = obj.player2 ;
+  if (score1Text !== obj.score[0])
+  {
+    score1Text = obj.score[0] ;
+    updateScore() ;
+  }
+  if (score2Text !== obj.score[1])
+  {
+    score2Text = obj.score[1] ;
+    updateScore() ;
+  }
   if (obj.side == 'player2')
     camera.position.z = opposit_side_cam_pos ;
   camera.lookAt(0,0,0) ;
@@ -228,4 +235,31 @@ function keyUp(e) {
      right = false
   else if (e.keyCode == '39') // left arrow
      left = false
+}
+
+
+function createTextTexture(text) {
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  canvas.width = 256;
+  canvas.height = 256;
+
+  context.fillStyle = "rgba(0, 0, 0, 0.0)";
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  context.font = 'Bold 256px Arial';
+  context.fillStyle = '#ffffff';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+  return new THREE.CanvasTexture(canvas);
+}
+
+function updateScore() {
+  player1Score.material.map = createTextTexture(`${score1Text}`) ;
+  player2Score.material.map = createTextTexture(`${score2Text}`) ;
+  player1Score.material.needsUpdate = true ;
+  player2Score.material.needsUpdate = true ;
 }
